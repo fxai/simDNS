@@ -1,0 +1,31 @@
+[package]
+name = "simdns"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+description = "DNS Telemetry Emulation Server for purple-team detection engineering"
+license = "MIT"
+
+[[bin]]
+name = "simdns"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { version = "1.38.0", features = ["rt-multi-thread", "net", "time", "macros", "signal", "sync"] }
+hickory-proto = "0.24.1"
+axum = "0.7.5"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["json", "env-filter", "fmt"] }
+serde = { version = "1.0.203", features = ["derive"] }
+toml = "0.8.14"
+clap = { version = "4.5.4", features = ["derive"] }
+data-encoding = "2.6.0"
+rand = "0.8.5"
+anyhow = "1.0.86"
+thiserror = "1.0.61"
+
+[profile.release]
+lto = true
+strip = true
+codegen-units = 1
+panic = "unwind"

@@ -1,0 +1,28 @@
+# Scenario: NXDOMAIN Scan / Flood
+# Goal: exercise detections for high NXDOMAIN ratios (DGA-like / scanning).
+# 90% of in-zone queries return NXDOMAIN with an authoritative SOA.
+[server]
+port = 53
+
+[zone]
+name = "test-telemetry.example.com"
+
+[channel]
+encoding = "base32"
+
+[profile]
+jitter_min_ms = 0
+jitter_max_ms = 0
+honor_qtype = true
+nxdomain_rate = 0.90
+servfail_rate = 0.02
+
+[profile.record_mix]
+txt = 90
+a = 10
+aaaa = 0
+cname = 0
+null = 0
+
+[telemetry]
+format = "json"

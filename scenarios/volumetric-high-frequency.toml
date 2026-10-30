@@ -1,0 +1,28 @@
+# Scenario: Volumetric / High Frequency
+# Goal: exercise rate/volume detections (queries-per-host, unique-subdomain
+# counts). Small payloads, near-zero latency => high query rate from a driver.
+[server]
+port = 53
+
+[zone]
+name = "test-telemetry.example.com"
+
+[channel]
+encoding = "base32"
+txt_payload_bytes = 40         # small answers; signal is COUNT not size
+answer_ttl_secs = 5            # low TTL discourages caching, keeps queries flowing
+
+[profile]
+jitter_min_ms = 0              # no added latency
+jitter_max_ms = 0
+honor_qtype = true
+
+[profile.record_mix]
+txt = 80
+a = 20
+aaaa = 0
+cname = 0
+null = 0
+
+[telemetry]
+format = "json"

@@ -1,0 +1,81 @@
+# ======================================================================
+# simdns — DNS Telemetry Emulation Server: full configuration template.
+#
+# Every value below is the built-in default; uncomment and change what
+# you need. A whole section may be omitted to accept its defaults.
+# CLI flags (--bind, --port, --zone, --encoding, --metrics-addr,
+# --log-format, --log-decoded-payload) override the matching values.
+#
+# This tool emits DETECTABLE artifacts for detection engineering. It
+# contains no evasion/obfuscation and is not an operational implant.
+# ======================================================================
+
+[server]
+# Address/port for BOTH the UDP and TCP listeners. Port 53 needs root or
+# CAP_NET_BIND_SERVICE; use a high port for unprivileged lab testing.
+bind = "0.0.0.0"
+port = 53
+udp = true
+tcp = true                      # required to test large TXT / fragmentation
+tcp_max_message_bytes = 65535   # per-message cap (bounds memory)
+tcp_max_connections = 256       # concurrent TCP connections (DoS guard)
+
+[zone]
+# The single delegated zone this server is authoritative for. Queries
+# outside it are answered REFUSED. Queries for the apex SOA/NS are
+# answered authoritatively so NS delegation behaves realistically.
+name = "test-telemetry.example.com"
+
+[channel]
+# Expected encoding of data carried in subdomain labels: base32 | hex |
+# base64url. This tunes the ENTROPY signature of inbound traffic.
+encoding = "base32"
+# Pools / targets used to synthesise outbound answers.
+a_pool = ["192.0.2.10", "192.0.2.11"]        # TEST-NET-1 (RFC 5737)
+aaaa_pool = ["2001:db8::10"]                  # documentation prefix
+cname_target = "sink.test-telemetry.example.com"
+txt_payload_bytes = 180        # synthetic TXT answer size
+null_payload_bytes = 180       # synthetic NULL answer size
+answer_ttl_secs = 60           # low TTLs are themselves a detection signal
+
+[profile]
+# ---- Temporal jitter: added response latency, drawn uniformly. ----
+jitter_min_ms = 0
+jitter_max_ms = 0
+
+# When true, a supported QTYPE (TXT/A/AAAA/CNAME/NULL) is answered with
+# that type and record_mix is only a fallback for other QTYPEs. When
+# false, the answer type is ALWAYS drawn from record_mix regardless of
+# QTYPE — useful to emit a precise server-controlled distribution and to
+# generate a controllable type/QTYPE-mismatch protocol anomaly.
+honor_qtype = true
+
+# ---- Failure-rate simulation (fractions in [0.0, 1.0]). ----
+# Their sum must not exceed 1.0. NXDOMAIN simulates scanning / NXDOMAIN
+# flood patterns; SERVFAIL simulates resolver/backend failure patterns.
+nxdomain_rate = 0.0
+servfail_rate = 0.0
+
+# ---- Record profile mix: weighted distribution of answer types. ----
+# Weights are relative (need not sum to 100). Consulted per honor_qtype.
+[profile.record_mix]
+txt = 90
+a = 10
+aaaa = 0
+cname = 0
+null = 0
+
+[session]
+# In-memory session model. A session id in the query correlates chunked
+# queries into one logical transfer. Idle sessions expire after ttl_secs;
+# the total count is hard-capped (bounded memory / DoS guard).
+ttl_secs = 300
+max_sessions = 10000
+
+[telemetry]
+format = "json"                 # json | pretty
+log_decoded_payload = false     # off by default to avoid logging test data
+
+[metrics]
+enabled = false                 # or pass --metrics-addr to enable
+bind = "127.0.0.1:9100"         # serves /metrics (Prometheus) + /metrics.json

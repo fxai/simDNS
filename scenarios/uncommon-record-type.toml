@@ -1,0 +1,31 @@
+# Scenario: Uncommon Record Type
+# Goal: exercise detections keyed on rare record types (NULL/CNAME chains).
+# honor_qtype = false => the server ALWAYS answers from the mix regardless of
+# the QTYPE the client sent, emitting NULL/CNAME answers (and a controllable
+# QTYPE/answer-type mismatch anomaly).
+[server]
+port = 53
+
+[zone]
+name = "test-telemetry.example.com"
+
+[channel]
+encoding = "base32"
+null_payload_bytes = 200
+cname_target = "sink.test-telemetry.example.com"
+answer_ttl_secs = 30
+
+[profile]
+jitter_min_ms = 50
+jitter_max_ms = 400
+honor_qtype = false            # force server-driven record-type distribution
+
+[profile.record_mix]
+txt = 0
+a = 0
+aaaa = 0
+cname = 30
+null = 70
+
+[telemetry]
+format = "json"

@@ -1,0 +1,30 @@
+# Scenario: High Entropy / Long Label
+# Goal: exercise entropy-based and label-length detections.
+# - base64url => highest-entropy labels on the inbound channel
+# - large TXT answers => long outbound record sets (forces TCP over UDP)
+# - low beacon rate, so volume is NOT the trigger; entropy/length is.
+[server]
+port = 53
+
+[zone]
+name = "test-telemetry.example.com"
+
+[channel]
+encoding = "base64url"
+txt_payload_bytes = 900        # > 512, will set TC=1 on UDP and move to TCP
+answer_ttl_secs = 30
+
+[profile]
+jitter_min_ms = 800            # slow, deliberate cadence
+jitter_max_ms = 2500
+honor_qtype = true
+
+[profile.record_mix]
+txt = 100
+a = 0
+aaaa = 0
+cname = 0
+null = 0
+
+[telemetry]
+format = "json"
