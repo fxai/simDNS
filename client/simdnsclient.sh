@@ -15,7 +15,7 @@
 # --- Configuration ---
 SERVER="127.0.0.1"
 ZONE="test.local"
-SESSION_ID="sim_sess_$(date +%s)"
+SESSION_ID="s_$(date +%s)"
 
 # Timing & Cadence
 HEARTBEAT_INTERVAL=5
